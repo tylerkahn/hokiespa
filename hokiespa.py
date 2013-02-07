@@ -17,6 +17,20 @@ class Course(object):
         self.instructor = self.type = self.capacity = self.comments = None
         self.meeting_times = []
 
+class Term(object):
+    SPRING      = 0
+    SUMMER_I    = 1
+    SUMMER_II   = 2
+    FALL        = 3
+
+    @staticmethod
+    def lookup(num):
+        return { 0 : '01',
+                 1 : '06',
+                 2 : '07',
+                 3 : '09'}[num]
+
+
 def getSubjects():
     resp = requests.get(Constants.getURL)
     PQ = PyQuery(resp.content)
@@ -44,13 +58,13 @@ def pullSubjectPage(subjectCode, year, term, onlyOpen = False):
         switch = "on"
     else:
         switch = ""
-    data = {"CAMPUS" : 0, "TERMYEAR" : year+term, "SUBJ_CODE" : subjectCode, "open_only" : switch, "CORE_CODE" : "AR%", "PRINT_FRIEND" : "Y"}
+    data = {"CAMPUS" : 0, "TERMYEAR" : str(year)+Term.lookup(term), "SUBJ_CODE" : subjectCode, "open_only" : switch, "CORE_CODE" : "AR%", "PRINT_FRIEND" : "Y"}
     resp = requests.post(Constants.postURL, data)
     return resp.content
 
 def pullCourseCommentsPage(courseId, crse, subjectCode, year, term):
     reqString = Constants.getCommentsURL + ("CRN=%s&TERM=%s&YEAR=%s&SUBJ=%s&CRSE=%s" %
-                        (courseId, term, year, subjectCode, crse))
+                        (courseId, Term.lookup(term), str(year), subjectCode, crse))
     resp = requests.get(reqString)
     return resp.content
 
